@@ -1,12 +1,39 @@
+"use client";
+
 import { cn } from "~/lib/utils";
 import { MultiStepCustomizationForm } from "~/components/forms/multi-step-customization-form";
+import { CustomizationTimeline } from "~/components/blocks/customization-timeline";
+import { useState } from "react";
 
 export function CustomizationFormSection() {
+  const steps = [
+    "Memorial Info",
+    "Format",
+    "Products",
+    "Theme",
+    "Customize",
+    "Review",
+  ];
+
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+
   return (
     <section className={cn("relative overflow-hidden")}>
+      <div className={cn("border-y")}>
+        <div
+          className={cn(
+            "max-w-7xl mx-auto px-4 py-4 flex flex-col items-center",
+          )}
+        >
+          <CustomizationTimeline
+            steps={steps}
+            currentStepIndex={currentStepIndex}
+          />
+        </div>
+      </div>
       <div
         className={cn(
-          "max-w-7xl mx-auto px-4 pb-20 md:pb-28 relative flex flex-col items-center gap-8",
+          "max-w-7xl mx-auto px-4 pt-16 pb-20 md:pb-28 relative flex flex-col items-center gap-8",
         )}
       >
         <div className={cn("flex flex-col items-center text-center space-y-4")}>
