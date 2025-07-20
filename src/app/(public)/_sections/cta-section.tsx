@@ -1,7 +1,9 @@
+import Link from "next/link";
+
 import { ArrowRightIcon } from "lucide-react";
 
-import { Button } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
+import { buttonVariants } from "~/components/ui/button";
 
 export function CTASection() {
   return (
@@ -33,9 +35,18 @@ export function CTASection() {
             hours. Our compassionate team is here to help every step of the way.
           </p>
         </div>
-        <Button variant="secondary" size="xl" className={cn("font-bold")}>
+        <Link
+          href="/customize"
+          className={cn(
+            buttonVariants({
+              variant: "secondary",
+              size: "xl",
+            }),
+            "font-bold",
+          )}
+        >
           Begin Your Memorial <ArrowRightIcon />
-        </Button>
+        </Link>
       </div>
     </section>
   );

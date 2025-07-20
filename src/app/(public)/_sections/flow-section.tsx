@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import {
   ArrowRightIcon,
   CameraIcon,
@@ -5,8 +7,8 @@ import {
   UsersIcon,
 } from "lucide-react";
 
-import { Button } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
+import { buttonVariants } from "~/components/ui/button";
 
 const flow = [
   {
@@ -44,9 +46,18 @@ export function FlowSection() {
         </div>
         <div className={cn("flex flex-col items-center gap-12")}>
           <div className={cn("flex flex-col md:flex-row items-center gap-8")}>
-            <Button variant="default" size="3xl" className={cn("font-bold")}>
+            <Link
+              href="/customize"
+              className={cn(
+                buttonVariants({
+                  variant: "default",
+                  size: "3xl",
+                }),
+                "font-bold",
+              )}
+            >
               Start Your Memorial <ArrowRightIcon className={cn("size-5")} />
-            </Button>
+            </Link>
             <ul className={cn("flex flex-col md:flex-row items-center gap-8")}>
               {flow.map((item) => (
                 <li className={cn("flex items-center gap-2")} key={item.name}>

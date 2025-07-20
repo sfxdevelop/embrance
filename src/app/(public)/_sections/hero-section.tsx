@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import {
   ArrowRightIcon,
   ClockIcon,
@@ -6,8 +8,8 @@ import {
   StarIcon,
 } from "lucide-react";
 
-import { Button } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
+import { buttonVariants } from "~/components/ui/button";
 
 const features = [
   {
@@ -58,9 +60,15 @@ export function HeroSection() {
         </div>
         <div className={cn("flex flex-col items-center gap-12")}>
           <div className={cn("flex flex-col md:flex-row items-center gap-4")}>
-            <Button variant="default" size="3xl" className={cn("font-bold")}>
+            <Link
+              href="/customize"
+              className={cn(
+                buttonVariants({ variant: "default", size: "3xl" }),
+                "font-bold",
+              )}
+            >
               Begin Your Memorial <ArrowRightIcon className={cn("size-5")} />
-            </Button>
+            </Link>
             <div className={cn("flex items-center gap-2")}>
               <ClockIcon className={cn("size-5")} />
               <p>24-hour proof delivery guaranteed</p>

@@ -25,7 +25,7 @@ const products = [
       "Single photo or collage layouts",
     ],
     startingPrice: "$45",
-    link: "#",
+    link: "/customize",
   },
   {
     id: 2,
@@ -45,7 +45,7 @@ const products = [
       "Single photo or collage layouts",
     ],
     startingPrice: "$45",
-    link: "#",
+    link: "/customize",
   },
   {
     id: 3,
@@ -66,7 +66,7 @@ const products = [
       "Single photo or collage layouts",
     ],
     startingPrice: "$45",
-    link: "#",
+    link: "/customize",
   },
 ];
 
