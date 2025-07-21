@@ -1,0 +1,181 @@
+model Auth {
+    id String @id @default(uuid())
+
+    name     String
+    email    String  @unique
+    password String?
+
+    profile Profile?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model Profile {
+    id String @id @default(uuid())
+
+    country      String
+    city         String
+    state        String
+    postalCode   String  @map("postal_code")
+    addressLine1 String  @map("address_line_1")
+    addressLine2 String? @map("address_line_2")
+
+    authId String @unique @map("auth_id")
+    auth   Auth   @relation(fields: [authId], references: [id])
+
+    orders Order[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model ProductType {
+    id String @id @default(uuid())
+
+    name        String  @unique
+    description String?
+    mediaRef    String? @map("media_ref")
+
+    products Product[]
+    orders   Order[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model ProductFormat {
+    id String @id @default(uuid())
+
+    name String @unique
+
+    products Product[]
+    orders   Order[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model ProductSize {
+    id String @id @default(uuid())
+
+    width           Int
+    height          Int
+    prizeAdjustment Float @map("prize_adjustment")
+
+    products Product[]
+    orders   Order[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@unique([width, height])
+}
+
+model ProductFinish {
+    id String @id @default(uuid())
+
+    name            String @unique
+    prizeAdjustment Float  @map("prize_adjustment")
+
+    products Product[]
+    orders   Order[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model ProductTheme {
+    id String @id @default(uuid())
+
+    name        String  @unique
+    description String?
+    mediaRef    String? @map("media_ref")
+
+    products Product[]
+    orders   Order[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model PresetText {
+    id String @id @default(uuid())
+
+    content String @unique
+
+    products Product[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model Product {
+    id String @id @default(uuid())
+
+    name        String  @unique
+    description String?
+    mediaRef    String? @map("media_ref")
+
+    productType   ProductType @relation(fields: [productTypeId], references: [id])
+    productTypeId String      @map("product_type_id")
+
+    productFormats  ProductFormat[]
+    productSizes    ProductSize[]
+    productFinishes ProductFinish[]
+    productThemes   ProductTheme[]
+    presetTexts     PresetText[]
+    orders          Order[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+enum OrderStatus {
+    CANCELLED
+    PENDING
+    PROCESSING
+    COMPLETED
+}
+
+model Order {
+    id String @id @default(uuid())
+
+    status   OrderStatus @default(PENDING)
+    metadata Json
+    quantity Int         @default(1)
+    total    Float
+
+    profile         Profile       @relation(fields: [profileId], references: [id])
+    profileId       String        @map("profile_id")
+    product         Product       @relation(fields: [productId], references: [id])
+    productId       String        @map("product_id")
+    productType     ProductType   @relation(fields: [productTypeId], references: [id])
+    productTypeId   String        @map("product_type_id")
+    productFormat   ProductFormat @relation(fields: [productFormatId], references: [id])
+    productFormatId String        @map("product_format_id")
+    productSize     ProductSize   @relation(fields: [productSizeId], references: [id])
+    productSizeId   String        @map("product_size_id")
+    productFinish   ProductFinish @relation(fields: [productFinishId], references: [id])
+    productFinishId String        @map("product_finish_id")
+    productTheme    ProductTheme  @relation(fields: [productThemeId], references: [id])
+    productThemeId  String        @map("product_theme_id")
+
+    reviews Review[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model Review {
+    id String @id @default(uuid())
+
+    rating  Int
+    content String
+
+    order   Order  @relation(fields: [orderId], references: [id])
+    orderId String @map("order_id")
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
