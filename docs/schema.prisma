@@ -170,8 +170,9 @@ model Order {
 model Review {
     id String @id @default(uuid())
 
-    rating  Int
-    content String
+    rating   Int
+    content  String
+    mediaRef String? @map("media_ref")
 
     order   Order  @relation(fields: [orderId], references: [id])
     orderId String @map("order_id")
