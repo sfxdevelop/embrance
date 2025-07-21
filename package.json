@@ -1,16 +1,14 @@
 {
-  "name": "ember-next",
+  "name": "embrance",
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev:start": "next dev --turbopack",
-    "prod:build": "next build",
-    "prod:start": "next start",
-    "biome:check": "biome check",
-    "biome:write": "biome check --write",
-    "ui:add": "shadcn add"
+    "ui": "shadcn",
+    "biome": "biome",
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start"
   },
-  "packageManager": "pnpm@10.13.1",
   "dependencies": {
     "@hookform/resolvers": "^5.1.1",
     "@radix-ui/react-label": "^2.1.7",
