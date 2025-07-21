@@ -24,7 +24,7 @@ model Profile {
     authId String @unique @map("auth_id")
     auth   Auth   @relation(fields: [authId], references: [id])
 
-    orders Order[]
+    orders OrderItem[]
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -38,7 +38,7 @@ model ProductType {
     mediaRef    String? @map("media_ref")
 
     products Product[]
-    orders   Order[]
+    orders   OrderItem[]
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -50,7 +50,7 @@ model ProductFormat {
     name String @unique
 
     products Product[]
-    orders   Order[]
+    orders   OrderItem[]
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -61,10 +61,11 @@ model ProductSize {
 
     width           Int
     height          Int
-    prizeAdjustment Float @map("prize_adjustment")
+    label           String?
+    prizeAdjustment Float   @map("prize_adjustment")
 
     products Product[]
-    orders   Order[]
+    orders   OrderItem[]
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -79,7 +80,7 @@ model ProductFinish {
     prizeAdjustment Float  @map("prize_adjustment")
 
     products Product[]
-    orders   Order[]
+    orders   OrderItem[]
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -93,7 +94,7 @@ model ProductTheme {
     mediaRef    String? @map("media_ref")
 
     products Product[]
-    orders   Order[]
+    orders   OrderItem[]
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -115,6 +116,7 @@ model Product {
 
     name        String  @unique
     description String?
+    price       Float
     mediaRef    String? @map("media_ref")
 
     productType   ProductType @relation(fields: [productTypeId], references: [id])
@@ -125,7 +127,7 @@ model Product {
     productFinishes ProductFinish[]
     productThemes   ProductTheme[]
     presetTexts     PresetText[]
-    orders          Order[]
+    orders          OrderItem[]
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -138,7 +140,7 @@ enum OrderStatus {
     COMPLETED
 }
 
-model Order {
+model OrderItem {
     id String @id @default(uuid())
 
     status   OrderStatus @default(PENDING)
@@ -174,8 +176,8 @@ model Review {
     content  String
     mediaRef String? @map("media_ref")
 
-    order   Order  @relation(fields: [orderId], references: [id])
-    orderId String @map("order_id")
+    order   OrderItem @relation(fields: [orderId], references: [id])
+    orderId String    @map("order_id")
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
