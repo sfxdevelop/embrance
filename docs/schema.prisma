@@ -1,3 +1,8 @@
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
 model Auth {
     id String @id @default(uuid())
 
@@ -33,9 +38,9 @@ model Profile {
 model ProductType {
     id String @id @default(uuid())
 
-    name        String  @unique
+    name        String   @unique
     description String?
-    mediaRef    String? @map("media_ref")
+    mediaRefs   String[] @map("media_refs")
 
     products Product[]
     orders   OrderItem[]
@@ -89,9 +94,9 @@ model ProductFinish {
 model ProductTheme {
     id String @id @default(uuid())
 
-    name        String  @unique
+    name        String   @unique
     description String?
-    mediaRef    String? @map("media_ref")
+    mediaRefs   String[] @map("media_refs")
 
     products Product[]
     orders   OrderItem[]
@@ -114,10 +119,10 @@ model PresetText {
 model Product {
     id String @id @default(uuid())
 
-    name        String  @unique
+    name        String   @unique
     description String?
     price       Float
-    mediaRef    String? @map("media_ref")
+    mediaRefs   String[] @map("media_refs")
 
     productType   ProductType @relation(fields: [productTypeId], references: [id])
     productTypeId String      @map("product_type_id")
@@ -172,9 +177,9 @@ model OrderItem {
 model Review {
     id String @id @default(uuid())
 
-    rating   Int
-    content  String
-    mediaRef String? @map("media_ref")
+    rating    Int
+    content   String
+    mediaRefs String[] @map("media_refs")
 
     order   OrderItem @relation(fields: [orderId], references: [id])
     orderId String    @map("order_id")
