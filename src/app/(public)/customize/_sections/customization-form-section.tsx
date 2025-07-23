@@ -7,14 +7,7 @@ import { MultiStepCustomizationForm } from "~/components/forms/multi-step-custom
 import { cn } from "~/lib/utils";
 
 export function CustomizationFormSection() {
-  const steps = [
-    "Memorial Info",
-    "Format",
-    "Products",
-    "Theme",
-    "Customize",
-    "Review",
-  ];
+  const steps = ["Memorial Info", "Memorial Kit", "Theme", "Format", "Review"];
 
   const [currentStepIndex, _setCurrentStepIndex] = useState(0);
 

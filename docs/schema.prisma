@@ -14,6 +14,8 @@ model Auth {
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+
+    @@map("auths")
 }
 
 model Profile {
@@ -33,32 +35,43 @@ model Profile {
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+
+    @@map("profiles")
 }
 
 model ProductType {
     id String @id @default(uuid())
 
-    name        String   @unique
-    description String?
     mediaRefs   String[] @map("media_refs")
+    name        String   @unique
+    description String
 
     products Product[]
     orders   OrderItem[]
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+
+    @@map("product_types")
 }
 
 model ProductFormat {
     id String @id @default(uuid())
 
-    name String @unique
+    mediaRefs   String[] @map("media_refs")
+    name        String   @unique
+    description String
+    features    String[]
+    ctaText     String   @map("cta_text")
+    footerText  String   @map("footer_text")
 
     products Product[]
     orders   OrderItem[]
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+
+    @@map("product_formats")
 }
 
 model ProductSize {
@@ -76,33 +89,41 @@ model ProductSize {
     updatedAt DateTime @updatedAt
 
     @@unique([width, height])
+    @@map("product_sizes")
 }
 
 model ProductFinish {
     id String @id @default(uuid())
 
-    name            String @unique
-    prizeAdjustment Float  @map("prize_adjustment")
+    mediaRefs       String[] @map("media_refs")
+    name            String   @unique
+    description     String
+    prizeAdjustment Float    @map("prize_adjustment")
 
     products Product[]
     orders   OrderItem[]
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+
+    @@map("product_finishes")
 }
 
 model ProductTheme {
     id String @id @default(uuid())
 
-    name        String   @unique
-    description String?
-    mediaRefs   String[] @map("media_refs")
+    mediaRefs       String[] @map("media_refs")
+    name            String   @unique
+    description     String
+    prizeAdjustment Float    @map("prize_adjustment")
 
     products Product[]
     orders   OrderItem[]
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+
+    @@map("product_themes")
 }
 
 model PresetText {
@@ -114,15 +135,17 @@ model PresetText {
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+
+    @@map("preset_texts")
 }
 
 model Product {
     id String @id @default(uuid())
 
-    name        String   @unique
-    description String?
-    price       Float
     mediaRefs   String[] @map("media_refs")
+    name        String   @unique
+    description String
+    price       Float
 
     productType   ProductType @relation(fields: [productTypeId], references: [id])
     productTypeId String      @map("product_type_id")
@@ -136,11 +159,13 @@ model Product {
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+
+    @@map("products")
 }
 
 enum OrderStatus {
-    CANCELLED
     PENDING
+    PAID
     PROCESSING
     COMPLETED
 }
@@ -172,18 +197,22 @@ model OrderItem {
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+
+    @@map("order_items")
 }
 
 model Review {
     id String @id @default(uuid())
 
+    mediaRefs String[] @map("media_refs")
     rating    Int
     content   String
-    mediaRefs String[] @map("media_refs")
 
     order   OrderItem @relation(fields: [orderId], references: [id])
     orderId String    @map("order_id")
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+
+    @@map("reviews")
 }

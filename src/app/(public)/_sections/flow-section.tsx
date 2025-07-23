@@ -15,7 +15,7 @@ const flow = [
   },
   {
     icon: <PaletteIcon className={cn("size-6 text-primary")} />,
-    name: "Choose Themes",
+    name: "Choose Theme",
   },
   {
     icon: <UsersIcon className={cn("size-6 text-primary")} />,
