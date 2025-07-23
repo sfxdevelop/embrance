@@ -1,9 +1,10 @@
 "use client";
 
-import { cn } from "~/lib/utils";
-import { MultiStepCustomizationForm } from "~/components/forms/multi-step-customization-form";
-import { CustomizationTimeline } from "~/components/blocks/customization-timeline";
 import { useState } from "react";
+
+import { CustomizationTimeline } from "~/components/blocks/customization-timeline";
+import { MultiStepCustomizationForm } from "~/components/forms/multi-step-customization-form";
+import { cn } from "~/lib/utils";
 
 export function CustomizationFormSection() {
   const steps = [
@@ -15,7 +16,7 @@ export function CustomizationFormSection() {
     "Review",
   ];
 
-  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [currentStepIndex, _setCurrentStepIndex] = useState(0);
 
   return (
     <section className={cn("relative overflow-hidden")}>

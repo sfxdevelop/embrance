@@ -1,9 +1,10 @@
 "use client";
 
-import { AlertCircleIcon, ImageIcon, UploadIcon, XIcon } from "lucide-react";
+import { AlertCircleIcon, UploadIcon, XIcon } from "lucide-react";
+import Image from "next/image";
 
-import { formatBytes, useFileUpload } from "~/hooks/use-file-upload";
 import { Button } from "~/components/ui/button";
+import { formatBytes, useFileUpload } from "~/hooks/use-file-upload";
 import { cn } from "~/lib/utils";
 
 export default function FileUploads() {
@@ -32,13 +33,15 @@ export default function FileUploads() {
 
   return (
     <div className="w-full flex flex-col gap-2">
-      <div
+      <Button
+        onClick={openFileDialog}
         onDragEnter={handleDragEnter}
         onDragLeave={handleDragLeave}
         onDragOver={handleDragOver}
         onDrop={handleDrop}
         data-dragging={isDragging || undefined}
         data-files={files.length > 0 || undefined}
+        variant="ghost"
         className="border-input data-[dragging=true]:bg-accent/50 has-[input:focus]:border-ring has-[input:focus]:ring-ring/50 relative flex min-h-52 flex-col items-center overflow-hidden rounded-xl border border-dashed p-4 transition-colors not-data-[files]:justify-center has-[input:focus]:ring-[3px]"
       >
         <input
@@ -47,13 +50,7 @@ export default function FileUploads() {
           aria-label="Upload image file"
         />
         <div className="flex flex-col items-center justify-center px-4 py-3 gap-3 text-center">
-          <Button
-            className={cn("rounded-full")}
-            variant="link"
-            onClick={openFileDialog}
-          >
-            <UploadIcon className={cn("size-10")} aria-hidden="true" />
-          </Button>
+          <UploadIcon className={cn("size-10")} aria-hidden="true" />
           <p className="mb-1.5 text-lg font-medium">Upload Photos</p>
           <p className="text-muted-foreground text-xs">
             Drag and drop or click to select photos (Max {maxFiles} photos,{" "}
@@ -64,7 +61,7 @@ export default function FileUploads() {
             Supports PNG, JPEG, JPG formats
           </p>
         </div>
-      </div>
+      </Button>
 
       {errors.length > 0 && (
         <div
@@ -86,9 +83,11 @@ export default function FileUploads() {
             >
               <div className="flex items-center gap-3 overflow-hidden">
                 <div className="bg-accent aspect-square shrink-0 rounded">
-                  <img
-                    src={file.preview}
+                  <Image
+                    src={file.preview ?? ""}
                     alt={file.file.name}
+                    width={40}
+                    height={40}
                     className="size-10 rounded-[inherit] object-cover"
                   />
                 </div>

@@ -1,3 +1,3 @@
 export default function OrderPage() {
-  return <></>;
+  return;
 }

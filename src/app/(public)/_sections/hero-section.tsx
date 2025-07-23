@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 import {
   ArrowRightIcon,
   ClockIcon,
@@ -7,9 +5,9 @@ import {
   ShieldIcon,
   StarIcon,
 } from "lucide-react";
-
-import { cn } from "~/lib/utils";
+import Link from "next/link";
 import { buttonVariants } from "~/components/ui/button";
+import { cn } from "~/lib/utils";
 
 const features = [
   {

@@ -1,9 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
-import * as zod from "zod";
+import { format } from "date-fns";
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
@@ -11,9 +9,20 @@ import {
   GalleryHorizontalEndIcon,
   UserIcon,
 } from "lucide-react";
-import { format } from "date-fns";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import * as zod from "zod";
 
+import FileUploads from "~/components/blocks/file-uploads";
 import { Button } from "~/components/ui/button";
+import { Calendar } from "~/components/ui/calendar";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "~/components/ui/card";
 import {
   Form,
   FormControl,
@@ -24,21 +33,12 @@ import {
   FormMessage,
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
-import { cn } from "~/lib/utils";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "~/components/ui/card";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
-import { Calendar } from "~/components/ui/calendar";
-import FileUploads from "~/components/blocks/file-uploads";
+import { cn } from "~/lib/utils";
 
 const FormSchema = zod.object({
   fullName: zod.string(),
