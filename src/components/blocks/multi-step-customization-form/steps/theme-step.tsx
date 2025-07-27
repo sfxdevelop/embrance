@@ -120,10 +120,10 @@ export function ThemeStep({ form }: ThemeStepProps) {
                           <CardTitle className="text-lg">
                             {theme.name}
                           </CardTitle>
-                          {theme.prize_adjustment !== 0 && (
+                          {theme.price_adjustment !== 0 && (
                             <div className="text-sm text-muted-foreground">
-                              {theme.prize_adjustment > 0 ? "+" : ""}$
-                              {theme.prize_adjustment.toFixed(2)} price
+                              {theme.price_adjustment > 0 ? "+" : ""}$
+                              {theme.price_adjustment.toFixed(2)} price
                               adjustment
                             </div>
                           )}

@@ -66,6 +66,12 @@ function EnhancedProductCard({
   );
   const [loading, setLoading] = useState(true);
 
+  console.log("productWithOptions", productWithOptions);
+  console.log("selectedSize", selectedSize);
+  console.log("selectedFinish", selectedFinish);
+  console.log("customText", customText);
+  console.log("presetTextId", presetTextId);
+
   useEffect(() => {
     async function loadProductOptions() {
       try {
@@ -81,7 +87,7 @@ function EnhancedProductCard({
               `${fullProduct.product_sizes[0].width}" × ${fullProduct.product_sizes[0].height}"`,
             width: fullProduct.product_sizes[0].width,
             height: fullProduct.product_sizes[0].height,
-            priceAdjustment: fullProduct.product_sizes[0].prize_adjustment,
+            priceAdjustment: fullProduct.product_sizes[0].price_adjustment,
           });
         }
 
@@ -89,7 +95,7 @@ function EnhancedProductCard({
           setSelectedFinish({
             id: fullProduct.product_finishes[0].id,
             name: fullProduct.product_finishes[0].name,
-            priceAdjustment: fullProduct.product_finishes[0].prize_adjustment,
+            priceAdjustment: fullProduct.product_finishes[0].price_adjustment,
           });
         }
       } catch (error) {
@@ -260,16 +266,16 @@ function EnhancedProductCard({
                               size.label || `${size.width}" × ${size.height}"`,
                             width: size.width,
                             height: size.height,
-                            priceAdjustment: size.prize_adjustment,
+                            priceAdjustment: size.price_adjustment,
                           })
                         }
                       >
                         <span className="flex items-center gap-1">
                           {size.label || `${size.width}" × ${size.height}"`}
-                          {size.prize_adjustment !== 0 && (
+                          {size.price_adjustment !== 0 && (
                             <Badge variant="secondary" className="text-xs">
-                              {size.prize_adjustment > 0 ? "+" : ""}$
-                              {size.prize_adjustment}
+                              {size.price_adjustment > 0 ? "+" : ""}$
+                              {size.price_adjustment}
                             </Badge>
                           )}
                         </span>
@@ -299,16 +305,16 @@ function EnhancedProductCard({
                           setSelectedFinish({
                             id: finish.id,
                             name: finish.name,
-                            priceAdjustment: finish.prize_adjustment,
+                            priceAdjustment: finish.price_adjustment,
                           })
                         }
                       >
                         <span className="flex items-center justify-between w-full">
                           {finish.name}
-                          {finish.prize_adjustment !== 0 && (
+                          {finish.price_adjustment !== 0 && (
                             <Badge variant="secondary" className="text-xs">
-                              {finish.prize_adjustment > 0 ? "+" : ""}$
-                              {finish.prize_adjustment}
+                              {finish.price_adjustment > 0 ? "+" : ""}$
+                              {finish.price_adjustment}
                             </Badge>
                           )}
                         </span>

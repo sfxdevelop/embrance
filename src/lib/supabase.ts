@@ -36,7 +36,7 @@ export interface ProductSize {
   width: number;
   height: number;
   label?: string;
-  prize_adjustment: number;
+  price_adjustment: number;
   created_at: string;
   updated_at: string;
 }
@@ -46,7 +46,7 @@ export interface ProductFinish {
   media_refs: string[];
   name: string;
   description: string;
-  prize_adjustment: number;
+  price_adjustment: number;
   created_at: string;
   updated_at: string;
 }
@@ -56,7 +56,7 @@ export interface ProductTheme {
   media_refs: string[];
   name: string;
   description: string;
-  prize_adjustment: number;
+  price_adjustment: number;
   created_at: string;
   updated_at: string;
 }

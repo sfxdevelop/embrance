@@ -60,7 +60,7 @@ export function ReviewStep({ formData }: ReviewStepProps) {
         (total, item) => total + item.totalPrice,
         0,
       ) || 0;
-    const themeAdjustment = selectedTheme?.prize_adjustment || 0;
+    const themeAdjustment = selectedTheme?.price_adjustment || 0;
     return cartTotal + themeAdjustment;
   };
 
@@ -224,10 +224,10 @@ export function ReviewStep({ formData }: ReviewStepProps) {
                   <p className="text-sm text-muted-foreground">
                     {selectedTheme.description}
                   </p>
-                  {selectedTheme.prize_adjustment !== 0 && (
+                  {selectedTheme.price_adjustment !== 0 && (
                     <p className="text-sm font-medium">
-                      {selectedTheme.prize_adjustment > 0 ? "+" : ""}$
-                      {selectedTheme.prize_adjustment.toFixed(2)} adjustment
+                      {selectedTheme.price_adjustment > 0 ? "+" : ""}$
+                      {selectedTheme.price_adjustment.toFixed(2)} adjustment
                     </p>
                   )}
                 </div>
@@ -302,12 +302,12 @@ export function ReviewStep({ formData }: ReviewStepProps) {
                 ).toFixed(2)}
               </span>
             </div>
-            {selectedTheme && selectedTheme.prize_adjustment !== 0 && (
+            {selectedTheme && selectedTheme.price_adjustment !== 0 && (
               <div className="flex justify-between">
                 <span>Theme Adjustment:</span>
                 <span>
-                  {selectedTheme.prize_adjustment > 0 ? "+" : ""}$
-                  {selectedTheme.prize_adjustment.toFixed(2)}
+                  {selectedTheme.price_adjustment > 0 ? "+" : ""}$
+                  {selectedTheme.price_adjustment.toFixed(2)}
                 </span>
               </div>
             )}
