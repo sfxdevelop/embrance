@@ -177,13 +177,11 @@ export function MultiStepCustomizationForm({
 
         console.log("Processing order with data:", completeData);
 
-        // Process form submission and create order items
-        const orderItems = await orderProcessing.processFormSubmission(
-          completeData,
-          profileId,
-        );
+        // Process form submission and create order with order items
+        const { order, orderItems } =
+          await orderProcessing.processFormSubmission(completeData, profileId);
 
-        console.log("Order created successfully:", orderItems);
+        console.log("Order created successfully:", { order, orderItems });
 
         // TODO: Redirect to success page or show success message
         alert("Order submitted successfully!");

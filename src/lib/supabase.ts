@@ -10,6 +10,18 @@ if (!supabaseUrl || !supabaseKey) {
 export const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Database Types
+export interface Profile {
+  id: string;
+  user_id: string;
+  country: string;
+  city: string;
+  state: string;
+  postal_code: string;
+  address_line_1: string;
+  address_line_2?: string;
+  created_at: string;
+  updated_at: string;
+}
 export interface ProductType {
   id: string;
   media_refs: string[];
@@ -88,24 +100,99 @@ export interface Product {
 
 export type OrderStatus = "PENDING" | "PAID" | "PROCESSING" | "COMPLETED";
 
+export interface Order {
+  id: string;
+  profile_id: string;
+  status: OrderStatus;
+  total: number;
+  metadata?: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+  // Relations
+  profile?: Profile;
+  order_items?: OrderItem[];
+}
+
 export interface OrderItem {
   id: string;
-  status: OrderStatus;
+  order_id: string;
   metadata: Record<string, unknown>;
   quantity: number;
   total: number;
-  profile_id: string;
   product_id: string;
+  product_type_id: string;
   product_format_id: string;
   product_size_id: string;
   product_finish_id: string;
   product_theme_id: string;
   created_at: string;
   updated_at: string;
+  // Relations
+  order?: Order;
+  product?: Product;
+  product_type?: ProductType;
+  product_format?: ProductFormat;
+  product_size?: ProductSize;
+  product_finish?: ProductFinish;
+  product_theme?: ProductTheme;
+}
+
+export interface Review {
+  id: string;
+  media_refs: string[];
+  rating: number;
+  content: string;
+  order_id: string;
+  created_at: string;
+  updated_at: string;
+  // Relations
+  order_item?: OrderItem;
 }
 
 // API Functions
 export const api = {
+  // Profiles
+  async getProfile(userId: string): Promise<Profile | null> {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("user_id", userId)
+      .single();
+
+    if (error && error.code !== "PGRST116") throw error;
+    return data || null;
+  },
+
+  async createProfile(
+    profile: Omit<Profile, "id" | "created_at" | "updated_at">,
+  ): Promise<Profile> {
+    const { data, error } = await supabase
+      .from("profiles")
+      .insert(profile)
+      .select("*")
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  async updateProfile(
+    id: string,
+    updates: Partial<
+      Omit<Profile, "id" | "user_id" | "created_at" | "updated_at">
+    >,
+  ): Promise<Profile> {
+    const { data, error } = await supabase
+      .from("profiles")
+      .update({ ...updates, updated_at: new Date().toISOString() })
+      .eq("id", id)
+      .select("*")
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
   // Product Types
   async getProductTypes(): Promise<ProductType[]> {
     const { data, error } = await supabase
@@ -202,7 +289,51 @@ export const api = {
     return data || [];
   },
 
-  // Create Order Items
+  // Orders
+  async createOrder(
+    order: Omit<Order, "id" | "created_at" | "updated_at">,
+  ): Promise<Order> {
+    const { data, error } = await supabase
+      .from("orders")
+      .insert(order)
+      .select("*")
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  async getOrder(orderId: string): Promise<Order | null> {
+    const { data, error } = await supabase
+      .from("orders")
+      .select(`
+        *,
+        profile:profiles(*),
+        order_items:order_items(*)
+      `)
+      .eq("id", orderId)
+      .single();
+
+    if (error && error.code !== "PGRST116") throw error;
+    return data || null;
+  },
+
+  async updateOrderStatus(
+    orderId: string,
+    status: OrderStatus,
+  ): Promise<Order> {
+    const { data, error } = await supabase
+      .from("orders")
+      .update({ status, updated_at: new Date().toISOString() })
+      .eq("id", orderId)
+      .select("*")
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  // Order Items
   async createOrderItems(
     orderItems: Omit<OrderItem, "id" | "created_at" | "updated_at">[],
   ): Promise<OrderItem[]> {
@@ -210,6 +341,48 @@ export const api = {
       .from("order_items")
       .insert(orderItems)
       .select("*");
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  async getOrderItems(orderId: string): Promise<OrderItem[]> {
+    const { data, error } = await supabase
+      .from("order_items")
+      .select(`
+        *,
+        product:products(*),
+        product_type:product_types(*),
+        product_format:product_formats(*),
+        product_size:product_sizes(*),
+        product_finish:product_finishes(*),
+        product_theme:product_themes(*)
+      `)
+      .eq("order_id", orderId);
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  // Reviews
+  async createReview(
+    review: Omit<Review, "id" | "created_at" | "updated_at">,
+  ): Promise<Review> {
+    const { data, error } = await supabase
+      .from("reviews")
+      .insert(review)
+      .select("*")
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  async getReviewsByOrderItem(orderItemId: string): Promise<Review[]> {
+    const { data, error } = await supabase
+      .from("reviews")
+      .select("*")
+      .eq("order_id", orderItemId);
 
     if (error) throw error;
     return data || [];
@@ -255,15 +428,21 @@ interface FormSubmissionData {
 
 // Order Processing Functions
 export const orderProcessing = {
-  // Process complete form data and create order items
+  // Process complete form data and create order with order items
   async processFormSubmission(
     formData: FormSubmissionData,
     profileId: string,
-  ): Promise<OrderItem[]> {
+  ): Promise<{ order: Order; orderItems: OrderItem[] }> {
     const { memorialInfo, memorialKit, theme, format } = formData;
 
-    // Create metadata object with memorial info and custom text
-    const baseMetadata = {
+    // Calculate total order amount
+    const orderTotal = memorialKit.cartItems.reduce(
+      (total, item) => total + item.totalPrice,
+      0,
+    );
+
+    // Create metadata object with memorial info
+    const orderMetadata = {
       fullName: memorialInfo.fullName,
       dob: memorialInfo.dob ? memorialInfo.dob.toISOString() : null,
       dop: memorialInfo.dop ? memorialInfo.dop.toISOString() : null,
@@ -273,34 +452,53 @@ export const orderProcessing = {
           id: photo.id,
           preview: photo.preview,
         })) || [],
+      selectedThemeId: theme.selectedThemeId,
+      selectedFormatId: format.selectedFormatId,
     };
 
-    // Map cart items to order items
-    const orderItems = memorialKit.cartItems.map((cartItem: CartItemData) => {
-      // Create item-specific metadata including custom text
-      const itemMetadata = {
-        ...baseMetadata,
-        customText: cartItem.customText || null,
-        presetTextId: cartItem.presetTextId || null,
-        productName: cartItem.productName,
-        productImage: cartItem.productImage,
-      };
-
-      return {
-        status: "PENDING" as OrderStatus,
-        metadata: itemMetadata,
-        quantity: cartItem.quantity,
-        total: cartItem.totalPrice,
-        profile_id: profileId,
-        product_id: cartItem.productId,
-        product_format_id: format.selectedFormatId,
-        product_size_id: cartItem.size?.id || "",
-        product_finish_id: cartItem.finish?.id || "",
-        product_theme_id: theme.selectedThemeId,
-      };
+    // Create the order first
+    const order = await api.createOrder({
+      profile_id: profileId,
+      status: "PENDING",
+      total: orderTotal,
+      metadata: orderMetadata,
     });
 
+    // Get product type for each cart item
+    const orderItemsData = await Promise.all(
+      memorialKit.cartItems.map(async (cartItem: CartItemData) => {
+        // Get product to find its type
+        const product = await api.getProductWithOptions(cartItem.productId);
+        if (!product) {
+          throw new Error(`Product not found: ${cartItem.productId}`);
+        }
+
+        // Create item-specific metadata including custom text
+        const itemMetadata = {
+          customText: cartItem.customText || null,
+          presetTextId: cartItem.presetTextId || null,
+          productName: cartItem.productName,
+          productImage: cartItem.productImage,
+        };
+
+        return {
+          order_id: order.id,
+          metadata: itemMetadata,
+          quantity: cartItem.quantity,
+          total: cartItem.totalPrice,
+          product_id: cartItem.productId,
+          product_type_id: product.product_type_id,
+          product_format_id: format.selectedFormatId,
+          product_size_id: cartItem.size?.id || "",
+          product_finish_id: cartItem.finish?.id || "",
+          product_theme_id: theme.selectedThemeId,
+        };
+      }),
+    );
+
     // Create order items in database
-    return await api.createOrderItems(orderItems);
+    const orderItems = await api.createOrderItems(orderItemsData);
+
+    return { order, orderItems };
   },
 };
