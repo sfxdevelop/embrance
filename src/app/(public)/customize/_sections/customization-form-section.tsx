@@ -3,13 +3,13 @@
 import { useState } from "react";
 
 import { CustomizationTimeline } from "~/components/blocks/customization-timeline";
-import { MultiStepCustomizationForm } from "~/components/forms/multi-step-customization-form";
+import { MultiStepCustomizationForm } from "~/components/blocks/multi-step-customization-form";
 import { cn } from "~/lib/utils";
 
 export function CustomizationFormSection() {
   const steps = ["Memorial Info", "Memorial Kit", "Theme", "Format", "Review"];
 
-  const [currentStepIndex, _setCurrentStepIndex] = useState(0);
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
 
   return (
     <section className={cn("relative overflow-hidden")}>
@@ -40,7 +40,11 @@ export function CustomizationFormSection() {
             Tell us about your loved one to personalize their memorial
           </p>
         </div>
-        <MultiStepCustomizationForm />
+        <MultiStepCustomizationForm
+          steps={steps}
+          currentStepIndex={currentStepIndex}
+          setCurrentStepIndex={setCurrentStepIndex}
+        />
       </div>
     </section>
   );

@@ -10,7 +10,6 @@ import {
   UserIcon,
 } from "lucide-react";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
 import * as zod from "zod";
 
 import FileUploads from "~/components/blocks/file-uploads";
@@ -47,27 +46,24 @@ const FormSchema = zod.object({
   dom: zod.date().optional(),
 });
 
-export function MultiStepCustomizationForm() {
+interface MultiStepCustomizationFormProps {
+  steps: string[];
+  currentStepIndex: number;
+  setCurrentStepIndex: (index: number) => void;
+}
+
+export function MultiStepCustomizationForm({
+  steps,
+  currentStepIndex,
+  setCurrentStepIndex,
+}: Readonly<MultiStepCustomizationFormProps>) {
   const form = useForm<zod.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
   });
 
-  function onSubmit(data: zod.infer<typeof FormSchema>) {
-    toast("You submitted the following values", {
-      description: (
-        <pre className="mt-2 w-[320px] rounded-md bg-neutral-950 p-4">
-          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-        </pre>
-      ),
-    });
-  }
-
   return (
     <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="md:w-2/3 space-y-6"
-      >
+      <form className="md:w-2/3 space-y-6">
         <Card>
           <CardHeader>
             <CardTitle
