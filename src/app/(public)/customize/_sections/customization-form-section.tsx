@@ -11,6 +11,34 @@ export function CustomizationFormSection() {
 
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
 
+  // Get current step configuration
+  const getCurrentStepConfig = () => {
+    const stepNames = [
+      "Memorial Information",
+      "Memorial Kit",
+      "Choose Theme",
+      "Select Format",
+      "Review & Confirm",
+    ];
+
+    const stepDescriptions = [
+      "Tell us about your loved one to personalize their memorial",
+      "Select the products you'd like to include in your memorial kit",
+      "Select a beautiful design theme for your memorial products",
+      "Choose between digital files or physical prints",
+      "Review your selections and confirm your order",
+    ];
+
+    return {
+      title: stepNames[currentStepIndex] || "Memorial Information",
+      description:
+        stepDescriptions[currentStepIndex] ||
+        "Tell us about your loved one to personalize their memorial",
+    };
+  };
+
+  const currentStep = getCurrentStepConfig();
+
   return (
     <section className={cn("relative overflow-hidden")}>
       <div className={cn("border-y")}>
@@ -34,11 +62,9 @@ export function CustomizationFormSection() {
           <h2
             className={cn("text-3xl font-bold font-[--font-playfair-display]")}
           >
-            Memorial Information
+            {currentStep.title}
           </h2>
-          <p className={cn("text-lg max-w-2xl")}>
-            Tell us about your loved one to personalize their memorial
-          </p>
+          <p className={cn("text-lg max-w-2xl")}>{currentStep.description}</p>
         </div>
         <MultiStepCustomizationForm
           steps={steps}

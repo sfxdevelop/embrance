@@ -2,26 +2,52 @@
 
 import { AlertCircleIcon, UploadIcon, XIcon } from "lucide-react";
 import Image from "next/image";
+import { useCallback } from "react";
 
 import { Button } from "~/components/ui/button";
-import { formatBytes, useFileUpload } from "~/hooks/use-file-upload";
+import {
+  type FileWithPreview,
+  formatBytes,
+  useFileUpload,
+} from "~/hooks/use-file-upload";
 import { cn } from "~/lib/utils";
 
-export default function FileUploads() {
-  const maxSizeMB = 10;
-  const maxSize = maxSizeMB * 1024 * 1024; // 5MB default
-  const maxFiles = 25;
+interface FileUploadsProps {
+  value?: FileWithPreview[];
+  onChange?: (files: FileWithPreview[]) => void;
+  maxFiles?: number;
+  maxSizeMB?: number;
+}
+
+export default function FileUploads({
+  value = [],
+  onChange,
+  maxFiles = 25,
+  maxSizeMB = 10,
+}: FileUploadsProps) {
+  const maxSize = maxSizeMB * 1024 * 1024;
+
+  // Create a stable callback that defers the onChange call to avoid state updates during render
+  const handleFilesChange = useCallback(
+    (newFiles: FileWithPreview[]) => {
+      // Use setTimeout to defer the state update and avoid React's warning
+      setTimeout(() => {
+        onChange?.(newFiles);
+      }, 0);
+    },
+    [onChange],
+  );
 
   const [
-    { files, isDragging, errors },
+    { isDragging, errors },
     {
       handleDragEnter,
       handleDragLeave,
       handleDragOver,
       handleDrop,
       openFileDialog,
-      removeFile,
-      clearFiles,
+      removeFile: hookRemoveFile,
+      clearFiles: hookClearFiles,
       getInputProps,
     },
   ] = useFileUpload({
@@ -29,7 +55,28 @@ export default function FileUploads() {
     maxSize,
     multiple: true,
     maxFiles,
+    onFilesChange: handleFilesChange,
   });
+
+  // Use controlled value instead of hook's internal files
+  const files = value;
+
+  const removeFile = (id: string) => {
+    // Update both the hook's internal state and the controlled state
+    hookRemoveFile(id);
+    const newFiles = files.filter((file) => file.id !== id);
+    setTimeout(() => {
+      onChange?.(newFiles);
+    }, 0);
+  };
+
+  const clearFiles = () => {
+    // Update both the hook's internal state and the controlled state
+    hookClearFiles();
+    setTimeout(() => {
+      onChange?.([]);
+    }, 0);
+  };
 
   return (
     <div className="w-full flex flex-col gap-2">
@@ -55,7 +102,7 @@ export default function FileUploads() {
           <p className="text-muted-foreground text-xs">
             Drag and drop or click to select photos (Max {maxFiles} photos,{" "}
             {maxSizeMB}
-            MB each)
+            MB each). Upload your favorite photos of your loved one.
           </p>
           <p className="text-muted-foreground text-xs">
             Supports PNG, JPEG, JPG formats
