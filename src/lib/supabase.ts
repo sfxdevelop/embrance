@@ -102,10 +102,11 @@ export type OrderStatus = "PENDING" | "PAID" | "PROCESSING" | "COMPLETED";
 
 export interface Order {
   id: string;
-  profile_id: string;
   status: OrderStatus;
   total: number;
   metadata?: Record<string, unknown>;
+  email?: string;
+  profile_id?: string;
   created_at: string;
   updated_at: string;
   // Relations
@@ -116,9 +117,9 @@ export interface Order {
 export interface OrderItem {
   id: string;
   order_id: string;
-  metadata: Record<string, unknown>;
   quantity: number;
   total: number;
+  metadata?: Record<string, unknown>;
   product_id: string;
   product_type_id: string;
   product_format_id: string;
@@ -241,26 +242,21 @@ export const api = {
     if (data) {
       return {
         ...data,
-        product_formats:
-          data.product_formats?.map(
-            (pf: { product_format: ProductFormat }) => pf.product_format,
-          ) || [],
-        product_sizes:
-          data.product_sizes?.map(
-            (ps: { product_size: ProductSize }) => ps.product_size,
-          ) || [],
-        product_finishes:
-          data.product_finishes?.map(
-            (pf: { product_finish: ProductFinish }) => pf.product_finish,
-          ) || [],
-        product_themes:
-          data.product_themes?.map(
-            (pt: { product_theme: ProductTheme }) => pt.product_theme,
-          ) || [],
-        preset_texts:
-          data.preset_texts?.map(
-            (pt: { preset_text: PresetText }) => pt.preset_text,
-          ) || [],
+        product_formats: data.product_formats?.map(
+          (pf: { product_format: ProductFormat }) => pf.product_format,
+        ) || [],
+        product_sizes: data.product_sizes?.map(
+          (ps: { product_size: ProductSize }) => ps.product_size,
+        ) || [],
+        product_finishes: data.product_finishes?.map(
+          (pf: { product_finish: ProductFinish }) => pf.product_finish,
+        ) || [],
+        product_themes: data.product_themes?.map(
+          (pt: { product_theme: ProductTheme }) => pt.product_theme,
+        ) || [],
+        preset_texts: data.preset_texts?.map(
+          (pt: { preset_text: PresetText }) => pt.preset_text,
+        ) || [],
       };
     }
 
@@ -447,11 +443,10 @@ export const orderProcessing = {
       dob: memorialInfo.dob ? memorialInfo.dob.toISOString() : null,
       dop: memorialInfo.dop ? memorialInfo.dop.toISOString() : null,
       dom: memorialInfo.dom.toISOString(),
-      photos:
-        memorialInfo.photos?.map((photo: PhotoData) => ({
-          id: photo.id,
-          preview: photo.preview,
-        })) || [],
+      photos: memorialInfo.photos?.map((photo: PhotoData) => ({
+        id: photo.id,
+        preview: photo.preview,
+      })) || [],
       selectedThemeId: theme.selectedThemeId,
       selectedFormatId: format.selectedFormatId,
     };
