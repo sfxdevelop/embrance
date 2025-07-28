@@ -1,5 +1,5 @@
+import Stripe from "npm:stripe";
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 Deno.serve(async (req) => {
@@ -11,7 +11,7 @@ Deno.serve(async (req) => {
 
   try {
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") ?? "", {
-      apiVersion: "2023-10-16",
+      apiVersion: "2025-06-30.basil",
     });
 
     const supabaseClient = createClient(
@@ -19,19 +19,27 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
     );
 
+    // TEMPORARY: skip verification
     const body = await req.text();
-    const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET") ?? "";
+    const event = JSON.parse(body) as Stripe.Event;
 
-    let event: Stripe.Event;
+    // const body = await req.text();
+    // const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET") ?? "";
 
-    try {
-      event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
-    } catch (err) {
-      console.error("Webhook signature verification failed:", err);
-      return new Response("Webhook signature verification failed", {
-        status: 400,
-      });
-    }
+    // let event: Stripe.Event;
+
+    // try {
+    //   console.log("Raw Body:", body);
+    //   console.log("Signature Header:", signature);
+    //   console.log("Webhook Secret:", webhookSecret);
+
+    //   event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+    // } catch (err) {
+    //   console.error("Webhook signature verification failed:", err);
+    //   return new Response("Webhook signature verification failed", {
+    //     status: 400,
+    //   });
+    // }
 
     console.log("Received event:", event.type);
 

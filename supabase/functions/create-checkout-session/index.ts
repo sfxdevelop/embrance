@@ -1,5 +1,5 @@
+import Stripe from "npm:stripe";
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import Stripe from "https://esm.sh/stripe@14.21.0";
 
 interface CreateCheckoutSessionRequest {
   orderId: string;
@@ -22,7 +22,7 @@ Deno.serve(async (req) => {
 
   try {
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") ?? "", {
-      apiVersion: "2023-10-16",
+      apiVersion: "2025-06-30.basil",
     });
 
     const {
@@ -51,7 +51,8 @@ Deno.serve(async (req) => {
         },
       ],
       mode: "payment",
-      success_url: `${successUrl}?session_id={CHECKOUT_SESSION_ID}&order_id=${orderId}`,
+      success_url:
+        `${successUrl}?session_id={CHECKOUT_SESSION_ID}&order_id=${orderId}`,
       cancel_url: `${cancelUrl}?order_id=${orderId}`,
       metadata: {
         order_id: orderId,
