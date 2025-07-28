@@ -82,8 +82,7 @@ export interface CartItem {
     name: string;
     priceAdjustment: number;
   };
-  customText?: string;
-  presetTextId?: string;
+  text: string;
   basePrice: number;
   totalPrice: number;
 }
@@ -113,8 +112,7 @@ export const memorialKitSchema = zod.object({
             priceAdjustment: zod.number(),
           })
           .optional(),
-        customText: zod.string().optional(),
-        presetTextId: zod.string().optional(),
+        text: zod.string(),
         basePrice: zod.number(),
         totalPrice: zod.number(),
       }),
@@ -139,18 +137,28 @@ export const formatSchema = zod.object({
     ),
 });
 
+// Email collection schema for review step
+export const emailSchema = zod.object({
+  email: zod
+    .string()
+    .min(1, "Email is required")
+    .email("Please enter a valid email address"),
+});
+
 // Complete Form Schema
 export const completeFormSchema = zod.object({
   memorialInfo: memorialInfoSchema,
   memorialKit: memorialKitSchema,
   theme: themeSchema,
   format: formatSchema,
+  email: emailSchema,
 });
 
 export type MemorialInfoFormData = zod.infer<typeof memorialInfoSchema>;
 export type MemorialKitFormData = zod.infer<typeof memorialKitSchema>;
 export type ThemeFormData = zod.infer<typeof themeSchema>;
 export type FormatFormData = zod.infer<typeof formatSchema>;
+export type EmailFormData = zod.infer<typeof emailSchema>;
 export type CompleteFormData = zod.infer<typeof completeFormSchema>;
 
 // Form State Interface
@@ -159,11 +167,13 @@ export interface FormState {
   memorialKit: Partial<MemorialKitFormData>;
   theme: Partial<ThemeFormData>;
   format: Partial<FormatFormData>;
+  email: Partial<EmailFormData>;
   currentStep: number;
   isValid: {
     memorialInfo: boolean;
     memorialKit: boolean;
     theme: boolean;
     format: boolean;
+    email: boolean;
   };
 }

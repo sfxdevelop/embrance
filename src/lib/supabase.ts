@@ -383,36 +383,68 @@ export const api = {
     if (error) throw error;
     return data || [];
   },
+
+  // Photo Upload Functions
+  async uploadPhoto(
+    file: File,
+    orderFolder: string = "order",
+  ): Promise<string> {
+    const fileExt = file.name.split(".").pop();
+    const fileName = `${orderFolder}/${Date.now()}-${
+      Math.random()
+        .toString(36)
+        .substring(2)
+    }.${fileExt}`;
+
+    const { error } = await supabase.storage
+      .from("embrance-prod")
+      .upload(fileName, file, {
+        cacheControl: "3600",
+        upsert: false,
+      });
+
+    if (error) throw error;
+
+    // Get public URL
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from("embrance-prod").getPublicUrl(fileName);
+
+    return publicUrl;
+  },
+
+  async uploadMultiplePhotos(
+    files: File[],
+    orderFolder: string = "order",
+  ): Promise<string[]> {
+    const uploadPromises = files.map((file) =>
+      this.uploadPhoto(file, orderFolder)
+    );
+    return Promise.all(uploadPromises);
+  },
 };
 
 // Types for order processing
-interface PhotoData {
-  id: string;
-  preview?: string;
-}
-
-interface CartItemData {
-  productId: string;
-  productName: string;
-  productImage: string;
-  quantity: number;
-  totalPrice: number;
-  customText?: string;
-  presetTextId?: string;
-  size?: { id: string };
-  finish?: { id: string };
-}
-
-interface FormSubmissionData {
+interface FormDataForOrder {
   memorialInfo: {
     fullName: string;
-    dob?: Date;
-    dop?: Date;
-    dom: Date;
-    photos?: PhotoData[];
+    dob?: string;
+    dop?: string;
+    dom: string;
+    photos: string[]; // URLs from uploaded photos
   };
   memorialKit: {
-    cartItems: CartItemData[];
+    cartItems: Array<{
+      id: string;
+      productId: string;
+      productName: string;
+      productImage: string;
+      quantity: number;
+      totalPrice: number;
+      text: string;
+      size?: { id: string };
+      finish?: { id: string };
+    }>;
   };
   theme: {
     selectedThemeId: string;
@@ -422,78 +454,70 @@ interface FormSubmissionData {
   };
 }
 
-// Order Processing Functions
+// New Order Processing Functions
 export const orderProcessing = {
-  // Process complete form data and create order with order items
-  async processFormSubmission(
-    formData: FormSubmissionData,
-    profileId: string,
+  // Upload photos to Supabase storage and return URLs
+  async uploadPhotos(
+    photos: File[],
+    orderFolder: string = "order",
+  ): Promise<string[]> {
+    return api.uploadMultiplePhotos(photos, orderFolder);
+  },
+
+  // Create order via Supabase function
+  async createOrder(
+    email: string,
+    formData: FormDataForOrder,
   ): Promise<{ order: Order; orderItems: OrderItem[] }> {
-    const { memorialInfo, memorialKit, theme, format } = formData;
-
-    // Calculate total order amount
-    const orderTotal = memorialKit.cartItems.reduce(
-      (total, item) => total + item.totalPrice,
-      0,
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/create-order`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({ email, formData }),
+      },
     );
 
-    // Create metadata object with memorial info
-    const orderMetadata = {
-      fullName: memorialInfo.fullName,
-      dob: memorialInfo.dob ? memorialInfo.dob.toISOString() : null,
-      dop: memorialInfo.dop ? memorialInfo.dop.toISOString() : null,
-      dom: memorialInfo.dom.toISOString(),
-      photos: memorialInfo.photos?.map((photo: PhotoData) => ({
-        id: photo.id,
-        preview: photo.preview,
-      })) || [],
-      selectedThemeId: theme.selectedThemeId,
-      selectedFormatId: format.selectedFormatId,
-    };
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || "Failed to create order");
+    }
 
-    // Create the order first
-    const order = await api.createOrder({
-      profile_id: profileId,
-      status: "PENDING",
-      total: orderTotal,
-      metadata: orderMetadata,
-    });
+    return response.json();
+  },
 
-    // Get product type for each cart item
-    const orderItemsData = await Promise.all(
-      memorialKit.cartItems.map(async (cartItem: CartItemData) => {
-        // Get product to find its type
-        const product = await api.getProductWithOptions(cartItem.productId);
-        if (!product) {
-          throw new Error(`Product not found: ${cartItem.productId}`);
-        }
-
-        // Create item-specific metadata including custom text
-        const itemMetadata = {
-          customText: cartItem.customText || null,
-          presetTextId: cartItem.presetTextId || null,
-          productName: cartItem.productName,
-          productImage: cartItem.productImage,
-        };
-
-        return {
-          order_id: order.id,
-          metadata: itemMetadata,
-          quantity: cartItem.quantity,
-          total: cartItem.totalPrice,
-          product_id: cartItem.productId,
-          product_type_id: product.product_type_id,
-          product_format_id: format.selectedFormatId,
-          product_size_id: cartItem.size?.id || "",
-          product_finish_id: cartItem.finish?.id || "",
-          product_theme_id: theme.selectedThemeId,
-        };
-      }),
+  // Create Stripe checkout session
+  async createCheckoutSession(
+    orderId: string,
+    email: string,
+    orderTotal: number,
+  ): Promise<{ sessionId: string; url: string }> {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/create-checkout-session`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({
+          orderId,
+          email,
+          orderTotal,
+          successUrl: `${window.location.origin}/order-success`,
+          cancelUrl: `${window.location.origin}/order-cancelled`,
+        }),
+      },
     );
 
-    // Create order items in database
-    const orderItems = await api.createOrderItems(orderItemsData);
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || "Failed to create checkout session");
+    }
 
-    return { order, orderItems };
+    return response.json();
   },
 };

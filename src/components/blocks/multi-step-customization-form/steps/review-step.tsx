@@ -9,17 +9,28 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import type { UseFormReturn } from "react-hook-form";
 
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "~/components/ui/form";
+import { Input } from "~/components/ui/input";
 import { Separator } from "~/components/ui/separator";
-import type { CompleteFormData } from "~/lib/schemas";
+import type { CompleteFormData, EmailFormData } from "~/lib/schemas";
 import { api, type ProductFormat, type ProductTheme } from "~/lib/supabase";
 
 interface ReviewStepProps {
   formData: CompleteFormData;
+  form: UseFormReturn<EmailFormData>;
 }
 
-export function ReviewStep({ formData }: ReviewStepProps) {
+export function ReviewStep({ formData, form }: ReviewStepProps) {
   const [selectedTheme, setSelectedTheme] = useState<ProductTheme | null>(null);
   const [selectedFormat, setSelectedFormat] = useState<ProductFormat | null>(
     null,
@@ -282,6 +293,38 @@ export function ReviewStep({ formData }: ReviewStepProps) {
           </Card>
         )}
       </div>
+
+      {/* Email Collection */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Contact Information</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email Address *</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="email"
+                      placeholder="Enter your email address"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                  <p className="text-sm text-muted-foreground">
+                    We'll send your order confirmation and updates to this email
+                    address.
+                  </p>
+                </FormItem>
+              )}
+            />
+          </Form>
+        </CardContent>
+      </Card>
 
       {/* Order Summary */}
       <Card>

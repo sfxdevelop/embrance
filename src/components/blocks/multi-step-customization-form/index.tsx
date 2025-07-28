@@ -8,6 +8,8 @@ import { useForm } from "react-hook-form";
 import { Button } from "~/components/ui/button";
 import {
   type CompleteFormData,
+  type EmailFormData,
+  emailSchema,
   type FormatFormData,
   formatSchema,
   type MemorialInfoFormData,
@@ -43,6 +45,7 @@ export function MultiStepCustomizationForm({
     memorialKit: Partial<MemorialKitFormData>;
     theme: Partial<ThemeFormData>;
     format: Partial<FormatFormData>;
+    email: Partial<EmailFormData>;
   }>({
     memorialInfo: {
       fullName: "",
@@ -56,6 +59,9 @@ export function MultiStepCustomizationForm({
     },
     format: {
       selectedFormatId: "",
+    },
+    email: {
+      email: "",
     },
   });
 
@@ -88,6 +94,13 @@ export function MultiStepCustomizationForm({
     resolver: zodResolver(formatSchema),
     defaultValues: {
       selectedFormatId: "",
+    },
+  });
+
+  const emailForm = useForm<EmailFormData>({
+    resolver: zodResolver(emailSchema),
+    defaultValues: {
+      email: "",
     },
   });
 
@@ -133,8 +146,15 @@ export function MultiStepCustomizationForm({
         return formatValid;
       }
 
-      case 4: // Review
-        return true; // Review step doesn't need validation
+      case 4: {
+        // Review step - validate email
+        const emailValid = await emailForm.trigger();
+        if (emailValid) {
+          const data = emailForm.getValues();
+          setFormData((prev) => ({ ...prev, email: data }));
+        }
+        return emailValid;
+      }
 
       default:
         return false;
@@ -155,12 +175,13 @@ export function MultiStepCustomizationForm({
   };
 
   const handleSubmit = async () => {
-    // Final validation of all steps
+    // Final validation of all steps including email
     const allValid = await Promise.all([
       memorialInfoForm.trigger(),
       memorialKitForm.trigger(),
       themeForm.trigger(),
       formatForm.trigger(),
+      emailForm.trigger(),
     ]);
 
     if (allValid.every(Boolean)) {
@@ -169,22 +190,50 @@ export function MultiStepCustomizationForm({
         memorialKit: memorialKitForm.getValues(),
         theme: themeForm.getValues(),
         format: formatForm.getValues(),
+        email: emailForm.getValues(),
       };
 
       try {
-        // TODO: Get actual profile ID from authentication
-        const profileId = "temp-profile-id"; // Replace with actual user profile ID
-
+        const email = completeData.email.email;
         console.log("Processing order with data:", completeData);
 
-        // Process form submission and create order with order items
-        const { order, orderItems } =
-          await orderProcessing.processFormSubmission(completeData, profileId);
+        // Step 1: Upload photos to Supabase storage
+        const photoFiles =
+          completeData.memorialInfo.photos?.map((p) => p.file as File) || [];
+        const photoUrls =
+          photoFiles.length > 0
+            ? await orderProcessing.uploadPhotos(photoFiles, "order")
+            : [];
 
+        // Step 2: Create order with photo URLs and proper date formatting
+        const formDataForOrder = {
+          memorialInfo: {
+            fullName: completeData.memorialInfo.fullName,
+            dob: completeData.memorialInfo.dob?.toISOString(),
+            dop: completeData.memorialInfo.dop?.toISOString(),
+            dom: completeData.memorialInfo.dom.toISOString(),
+            photos: photoUrls,
+          },
+          memorialKit: completeData.memorialKit,
+          theme: completeData.theme,
+          format: completeData.format,
+        };
+
+        const { order, orderItems } = await orderProcessing.createOrder(
+          email,
+          formDataForOrder,
+        );
         console.log("Order created successfully:", { order, orderItems });
 
-        // TODO: Redirect to success page or show success message
-        alert("Order submitted successfully!");
+        // Step 3: Create Stripe checkout session
+        const { url } = await orderProcessing.createCheckoutSession(
+          order.id,
+          email,
+          order.total,
+        );
+
+        // Redirect to Stripe checkout
+        window.location.href = url;
       } catch (error) {
         console.error("Failed to submit order:", error);
         alert("Failed to submit order. Please try again.");
@@ -203,7 +252,12 @@ export function MultiStepCustomizationForm({
       case 3:
         return <FormatStep form={formatForm} />;
       case 4:
-        return <ReviewStep formData={formData as CompleteFormData} />;
+        return (
+          <ReviewStep
+            formData={formData as CompleteFormData}
+            form={emailForm}
+          />
+        );
       default:
         return null;
     }

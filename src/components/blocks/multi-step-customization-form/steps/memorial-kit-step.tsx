@@ -47,7 +47,7 @@ interface ProductOptions {
   };
   selectedFinish?: { id: string; name: string; priceAdjustment: number };
   customText?: string;
-  presetTextId?: string;
+  presetText?: string;
 }
 
 function EnhancedProductCard({
@@ -60,7 +60,7 @@ function EnhancedProductCard({
   const [selectedFinish, setSelectedFinish] =
     useState<ProductOptions["selectedFinish"]>();
   const [customText, setCustomText] = useState("");
-  const [presetTextId, setPresetTextId] = useState("");
+  const [presetText, setPresetText] = useState("");
   const [productWithOptions, setProductWithOptions] = useState<Product | null>(
     null,
   );
@@ -70,7 +70,7 @@ function EnhancedProductCard({
   console.log("selectedSize", selectedSize);
   console.log("selectedFinish", selectedFinish);
   console.log("customText", customText);
-  console.log("presetTextId", presetTextId);
+  console.log("presetText", presetText);
 
   useEffect(() => {
     async function loadProductOptions() {
@@ -132,7 +132,7 @@ function EnhancedProductCard({
       selectedSize,
       selectedFinish,
       customText: customText || undefined,
-      presetTextId: presetTextId || undefined,
+      presetText: presetText || undefined,
     });
   };
 
@@ -340,12 +340,14 @@ function EnhancedProductCard({
                         <Button
                           key={preset.id}
                           variant={
-                            presetTextId === preset.id ? "default" : "outline"
+                            presetText === preset.content
+                              ? "default"
+                              : "outline"
                           }
                           size="sm"
                           className="w-full text-xs justify-start"
                           onClick={() => {
-                            setPresetTextId(preset.id);
+                            setPresetText(preset.content);
                             setCustomText(""); // Clear custom text when preset is selected
                           }}
                         >
@@ -366,7 +368,7 @@ function EnhancedProductCard({
                   value={customText}
                   onChange={(e) => {
                     setCustomText(e.target.value);
-                    setPresetTextId(""); // Clear preset when custom text is entered
+                    setPresetText(""); // Clear preset when custom text is entered
                   }}
                   className="min-h-[60px] text-xs"
                 />
@@ -418,6 +420,12 @@ export function MemorialKitStep({ form }: MemorialKitStepProps) {
       (options.selectedSize?.priceAdjustment || 0) +
       (options.selectedFinish?.priceAdjustment || 0);
 
+    let text = options.customText ?? "";
+
+    if (text === "") {
+      text = options.presetText ?? "";
+    }
+
     const newItem: CartItem = {
       id: `${product.id}-${Date.now()}`,
       productId: product.id,
@@ -426,8 +434,7 @@ export function MemorialKitStep({ form }: MemorialKitStepProps) {
       quantity: 1,
       size: options.selectedSize,
       finish: options.selectedFinish,
-      customText: options.customText,
-      presetTextId: options.presetTextId,
+      text,
       basePrice: product.price,
       totalPrice: totalPrice,
     };

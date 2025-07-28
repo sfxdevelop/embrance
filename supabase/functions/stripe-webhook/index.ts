@@ -1,23 +1,91 @@
-// Follow this setup guide to integrate the Deno language server with your editor:
-// https://deno.land/manual/getting_started/setup_your_environment
-// This enables autocomplete, go to definition, etc.
-
-// Setup type definitions for built-in Supabase Runtime APIs
-import "jsr:@supabase/functions-js/edge-runtime.d.ts"
-
-console.log("Hello from Functions!")
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import Stripe from "https://esm.sh/stripe@14.21.0";
+import { createClient } from "jsr:@supabase/supabase-js@2";
 
 Deno.serve(async (req) => {
-  const { name } = await req.json()
-  const data = {
-    message: `Hello ${name}!`,
+  const signature = req.headers.get("stripe-signature");
+
+  if (!signature) {
+    return new Response("No signature", { status: 400 });
   }
 
-  return new Response(
-    JSON.stringify(data),
-    { headers: { "Content-Type": "application/json" } },
-  )
-})
+  try {
+    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") ?? "", {
+      apiVersion: "2023-10-16",
+    });
+
+    const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+    );
+
+    const body = await req.text();
+    const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET") ?? "";
+
+    let event: Stripe.Event;
+
+    try {
+      event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+    } catch (err) {
+      console.error("Webhook signature verification failed:", err);
+      return new Response("Webhook signature verification failed", {
+        status: 400,
+      });
+    }
+
+    console.log("Received event:", event.type);
+
+    // Handle the event
+    switch (event.type) {
+      case "checkout.session.completed": {
+        const session = event.data.object as Stripe.Checkout.Session;
+        const orderId = session.metadata?.order_id;
+
+        if (!orderId) {
+          console.error("No order_id in session metadata");
+          return new Response("No order_id in metadata", { status: 400 });
+        }
+
+        // Update order status to PAID
+        const { error: updateError } = await supabaseClient
+          .from("orders")
+          .update({
+            status: "PAID",
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", orderId);
+
+        if (updateError) {
+          console.error("Error updating order status:", updateError);
+          return new Response("Error updating order", { status: 500 });
+        }
+
+        console.log(`Order ${orderId} marked as PAID`);
+        break;
+      }
+
+      case "payment_intent.payment_failed": {
+        const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        console.log("Payment failed:", paymentIntent.id);
+        // Handle payment failure if needed
+        break;
+      }
+
+      default:
+        console.log(`Unhandled event type: ${event.type}`);
+    }
+
+    return new Response("OK", { status: 200 });
+  } catch (error) {
+    console.error("Webhook error:", error);
+    return new Response(
+      `Webhook error: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`,
+      { status: 500 },
+    );
+  }
+});
 
 /* To invoke locally:
 

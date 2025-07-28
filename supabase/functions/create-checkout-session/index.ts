@@ -1,23 +1,91 @@
-// Follow this setup guide to integrate the Deno language server with your editor:
-// https://deno.land/manual/getting_started/setup_your_environment
-// This enables autocomplete, go to definition, etc.
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import Stripe from "https://esm.sh/stripe@14.21.0";
 
-// Setup type definitions for built-in Supabase Runtime APIs
-import "jsr:@supabase/functions-js/edge-runtime.d.ts"
-
-console.log("Hello from Functions!")
+interface CreateCheckoutSessionRequest {
+  orderId: string;
+  email: string;
+  orderTotal: number;
+  successUrl: string;
+  cancelUrl: string;
+}
 
 Deno.serve(async (req) => {
-  const { name } = await req.json()
-  const data = {
-    message: `Hello ${name}!`,
+  const corsHeaders = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers":
+      "authorization, x-client-info, apikey, content-type",
+  };
+
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
   }
 
-  return new Response(
-    JSON.stringify(data),
-    { headers: { "Content-Type": "application/json" } },
-  )
-})
+  try {
+    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") ?? "", {
+      apiVersion: "2023-10-16",
+    });
+
+    const {
+      orderId,
+      email,
+      orderTotal,
+      successUrl,
+      cancelUrl,
+    }: CreateCheckoutSessionRequest = await req.json();
+
+    // Create Stripe checkout session
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      customer_email: email,
+      line_items: [
+        {
+          price_data: {
+            currency: "usd",
+            product_data: {
+              name: "Memorial Order",
+              description: `Order #${orderId}`,
+            },
+            unit_amount: Math.round(orderTotal * 100), // Convert to cents
+          },
+          quantity: 1,
+        },
+      ],
+      mode: "payment",
+      success_url: `${successUrl}?session_id={CHECKOUT_SESSION_ID}&order_id=${orderId}`,
+      cancel_url: `${cancelUrl}?order_id=${orderId}`,
+      metadata: {
+        order_id: orderId,
+      },
+    });
+
+    return new Response(
+      JSON.stringify({
+        sessionId: session.id,
+        url: session.url,
+      }),
+      {
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "application/json",
+        },
+      },
+    );
+  } catch (error) {
+    console.error("Error creating checkout session:", error);
+    return new Response(
+      JSON.stringify({
+        error: error instanceof Error ? error.message : "Unknown error",
+      }),
+      {
+        status: 400,
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "application/json",
+        },
+      },
+    );
+  }
+});
 
 /* To invoke locally:
 
