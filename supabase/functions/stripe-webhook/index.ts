@@ -19,27 +19,31 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
     );
 
-    // TEMPORARY: skip verification
-    const body = await req.text();
-    const event = JSON.parse(body) as Stripe.Event;
-
+    // // TEMPORARY: skip verification
     // const body = await req.text();
-    // const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET") ?? "";
+    // const event = JSON.parse(body) as Stripe.Event;
 
-    // let event: Stripe.Event;
+    const body = await req.text();
+    const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET") ?? "";
 
-    // try {
-    //   console.log("Raw Body:", body);
-    //   console.log("Signature Header:", signature);
-    //   console.log("Webhook Secret:", webhookSecret);
+    let event: Stripe.Event;
 
-    //   event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
-    // } catch (err) {
-    //   console.error("Webhook signature verification failed:", err);
-    //   return new Response("Webhook signature verification failed", {
-    //     status: 400,
-    //   });
-    // }
+    try {
+      console.log("Raw Body:", body);
+      console.log("Signature Header:", signature);
+      console.log("Webhook Secret:", webhookSecret);
+
+      event = await stripe.webhooks.constructEventAsync(
+        body,
+        signature,
+        webhookSecret,
+      );
+    } catch (err) {
+      console.error("Webhook signature verification failed:", err);
+      return new Response("Webhook signature verification failed", {
+        status: 400,
+      });
+    }
 
     console.log("Received event:", event.type);
 

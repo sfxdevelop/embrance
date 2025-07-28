@@ -18,8 +18,6 @@ interface OrderItem {
     dom: string;
     photos: string[];
     text: string;
-    productName: string;
-    productImage: string;
   };
 }
 
@@ -87,10 +85,7 @@ Deno.serve(async (req) => {
         email,
         status: "PENDING",
         total: orderTotal,
-        metadata: {
-          selectedThemeId: formData.theme.selectedThemeId,
-          selectedFormatId: formData.format.selectedFormatId,
-        },
+        metadata: {},
       })
       .select("*")
       .single();
@@ -129,8 +124,6 @@ Deno.serve(async (req) => {
           dom: formData.memorialInfo.dom,
           photos: formData.memorialInfo.photos,
           text: cartItem.text,
-          productName: cartItem.productName,
-          productImage: cartItem.productImage,
         },
       });
     }

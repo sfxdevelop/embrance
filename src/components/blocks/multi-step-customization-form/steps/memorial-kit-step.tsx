@@ -426,6 +426,11 @@ export function MemorialKitStep({ form }: MemorialKitStepProps) {
       text = options.presetText ?? "";
     }
 
+    // Don't add to cart if no text is provided
+    if (!text.trim()) {
+      return;
+    }
+
     const newItem: CartItem = {
       id: `${product.id}-${Date.now()}`,
       productId: product.id,
@@ -441,6 +446,9 @@ export function MemorialKitStep({ form }: MemorialKitStepProps) {
 
     const currentItems = form.getValues("cartItems") || [];
     form.setValue("cartItems", [...currentItems, newItem]);
+
+    // Trigger validation to clear any previous errors
+    form.trigger("cartItems");
   };
 
   const removeFromCart = (itemId: string) => {

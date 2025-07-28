@@ -51,8 +51,7 @@ Deno.serve(async (req) => {
         },
       ],
       mode: "payment",
-      success_url:
-        `${successUrl}?session_id={CHECKOUT_SESSION_ID}&order_id=${orderId}`,
+      success_url: `${successUrl}?session_id={CHECKOUT_SESSION_ID}&order_id=${orderId}`,
       cancel_url: `${cancelUrl}?order_id=${orderId}`,
       metadata: {
         order_id: orderId,

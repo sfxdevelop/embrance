@@ -242,21 +242,26 @@ export const api = {
     if (data) {
       return {
         ...data,
-        product_formats: data.product_formats?.map(
-          (pf: { product_format: ProductFormat }) => pf.product_format,
-        ) || [],
-        product_sizes: data.product_sizes?.map(
-          (ps: { product_size: ProductSize }) => ps.product_size,
-        ) || [],
-        product_finishes: data.product_finishes?.map(
-          (pf: { product_finish: ProductFinish }) => pf.product_finish,
-        ) || [],
-        product_themes: data.product_themes?.map(
-          (pt: { product_theme: ProductTheme }) => pt.product_theme,
-        ) || [],
-        preset_texts: data.preset_texts?.map(
-          (pt: { preset_text: PresetText }) => pt.preset_text,
-        ) || [],
+        product_formats:
+          data.product_formats?.map(
+            (pf: { product_format: ProductFormat }) => pf.product_format,
+          ) || [],
+        product_sizes:
+          data.product_sizes?.map(
+            (ps: { product_size: ProductSize }) => ps.product_size,
+          ) || [],
+        product_finishes:
+          data.product_finishes?.map(
+            (pf: { product_finish: ProductFinish }) => pf.product_finish,
+          ) || [],
+        product_themes:
+          data.product_themes?.map(
+            (pt: { product_theme: ProductTheme }) => pt.product_theme,
+          ) || [],
+        preset_texts:
+          data.preset_texts?.map(
+            (pt: { preset_text: PresetText }) => pt.preset_text,
+          ) || [],
       };
     }
 
@@ -390,11 +395,9 @@ export const api = {
     orderFolder: string = "order",
   ): Promise<string> {
     const fileExt = file.name.split(".").pop();
-    const fileName = `${orderFolder}/${Date.now()}-${
-      Math.random()
-        .toString(36)
-        .substring(2)
-    }.${fileExt}`;
+    const fileName = `${orderFolder}/${Date.now()}-${Math.random()
+      .toString(36)
+      .substring(2)}.${fileExt}`;
 
     const { error } = await supabase.storage
       .from("embrance-prod")
@@ -418,7 +421,7 @@ export const api = {
     orderFolder: string = "order",
   ): Promise<string[]> {
     const uploadPromises = files.map((file) =>
-      this.uploadPhoto(file, orderFolder)
+      this.uploadPhoto(file, orderFolder),
     );
     return Promise.all(uploadPromises);
   },

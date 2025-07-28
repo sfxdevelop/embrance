@@ -112,7 +112,7 @@ export const memorialKitSchema = zod.object({
             priceAdjustment: zod.number(),
           })
           .optional(),
-        text: zod.string(),
+        text: zod.string().min(1, "Text is required for each product"),
         basePrice: zod.number(),
         totalPrice: zod.number(),
       }),
