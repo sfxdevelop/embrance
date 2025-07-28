@@ -1,47 +1,32 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import Stripe from "npm:stripe";
+// Follow this setup guide to integrate the Deno language server with your editor:
+// https://deno.land/manual/getting_started/setup_your_environment
+// This enables autocomplete, go to definition, etc.
 
-const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY"), {
-  apiVersion: "2025-06-30.basil",
-});
+// Setup type definitions for built-in Supabase Runtime APIs
+import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 
-serve(async (req) => {
-  try {
-    const { order } = await req.json();
+console.log("Hello from Functions!")
 
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
-      mode: "payment",
-      line_items: [
-        {
-          price_data: {
-            currency: "usd",
-            product_data: {
-              name: order.name,
-              description: order.description,
-            },
-            unit_amount: Math.round(order.total * 100), // convert to cents
-          },
-          quantity: order.quantity || 1,
-        },
-      ],
-      success_url: `${order.returnUrl}?success=true`,
-      cancel_url: `${order.returnUrl}?canceled=true`,
-      metadata: {
-        order_id: order.order_id,
-        profile_id: order.profile_id,
-      },
-    });
-
-    return new Response(JSON.stringify({ url: session.url }), {
-      headers: { "Content-Type": "application/json" },
-      status: 200,
-    });
-  } catch (error) {
-    console.error("Stripe error", error);
-    return new Response(JSON.stringify({ error: "Failed to create session" }), {
-      headers: { "Content-Type": "application/json" },
-      status: 500,
-    });
+Deno.serve(async (req) => {
+  const { name } = await req.json()
+  const data = {
+    message: `Hello ${name}!`,
   }
-});
+
+  return new Response(
+    JSON.stringify(data),
+    { headers: { "Content-Type": "application/json" } },
+  )
+})
+
+/* To invoke locally:
+
+  1. Run `supabase start` (see: https://supabase.com/docs/reference/cli/supabase-start)
+  2. Make an HTTP request:
+
+  curl -i --location --request POST 'http://127.0.0.1:54321/functions/v1/create-checkout-session' \
+    --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0' \
+    --header 'Content-Type: application/json' \
+    --data '{"name":"Functions"}'
+
+*/
